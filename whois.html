@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Consultor WHOIS de Domínios com IA</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f3f4f6;
+    }
+    #whoisData::-webkit-scrollbar {
+      width: 8px;
+    }
+    #whoisData::-webkit-scrollbar-thumb {
+      background: #9ca3af;
+      border-radius: 10px;
+    }
+    #whoisData::-webkit-scrollbar-thumb:hover {
+      background: #6b7280;
+    }
+  </style>
+</head>
+<body class="text-gray-800">
+  <div class="container mx-auto p-6">
+    <h1 class="text-3xl font-bold mb-6 text-center">Consultor WHOIS de Domínios com IA</h1>
+
+    <div class="mb-4 flex gap-2">
+      <input id="domainInput" type="text" placeholder="Digite um domínio (ex: exemplo.com)" class="w-full p-3 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      <button id="lookupButton" class="bg-blue-600 text-white px-4 py-3 rounded hover:bg-blue-700">Consultar</button>
+    </div>
+
+    <div id="loadingSpinner" class="hidden text-center mt-4">
+      <div class="spinner-small border-4 border-blue-300 border-t-transparent rounded-full animate-spin mx-auto w-8 h-8"></div>
+      <p class="text-sm mt-2 text-gray-600">Consultando WHOIS...</p>
+    </div>
+
+    <div id="errorMessage" class="hidden mt-4 bg-red-100 text-red-700 p-3 rounded">
+      <strong>Erro:</strong> <span id="errorText"></span>
+    </div>
+
+    <div id="resultsArea" class="hidden mt-6">
+      <h2 class="text-xl font-semibold mb-2">Resultados para: <span id="resultDomain" class="text-blue-700"></span></h2>
+      <pre id="whoisData" class="bg-white p-4 rounded border border-gray-300 max-h-96 overflow-y-auto text-sm"></pre>
+    </div>
+  </div>
+
+  <script>
+    const domainInput = document.getElementById("domainInput");
+    const lookupButton = document.getElementById("lookupButton");
+    const loadingSpinner = document.getElementById("loadingSpinner");
+    const resultsArea = document.getElementById("resultsArea");
+    const whoisData = document.getElementById("whoisData");
+    const resultDomain = document.getElementById("resultDomain");
+    const errorMessage = document.getElementById("errorMessage");
+    const errorText = document.getElementById("errorText");
+
+    async function fetchWhois(domain) {
+      const response = await fetch(`whois-proxy.php?domain=${encodeURIComponent(domain)}`);
+
+      if (!response.ok) throw new Error("Erro ao buscar dados WHOIS.");
+
+      return await response.json();
+    }
+
+    lookupButton.addEventListener("click", async () => {
+      const domain = domainInput.value.trim();
+      if (!domain) return alert("Digite um domínio válido.");
+
+      errorMessage.classList.add('hidden');
+      resultsArea.classList.add('hidden');
+      loadingSpinner.classList.remove('hidden');
+
+      try {
+        const data = await fetchWhois(domain);
+        whoisData.textContent = JSON.stringify(data, null, 2);
+        resultDomain.textContent = domain;
+        resultsArea.classList.remove("hidden");
+      } catch (error) {
+        errorText.textContent = error.message;
+        errorMessage.classList.remove("hidden");
+      } finally {
+        loadingSpinner.classList.add("hidden");
+      }
+    });
+  </script>
+</body>
+</html>
